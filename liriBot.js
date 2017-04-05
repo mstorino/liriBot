@@ -8,22 +8,86 @@ var request = require ("request");
 var spotify = require ("spotify");
 //Incorporate the "request" npm package for spotify
 
+//Incorporate core node package for reading & writing files
+
+var fs = require ("fs");
+
 
 
 // Grab function command 
 var userCommand = process.argv[2];
 
 //Global variables for movieThis
-var movieName;
-var queryURL;
+// var movieName;
+// var queryURL;
+
+var userValue = process.argv[3];
 
 if (userCommand === "movie-this") {
 	movieThis();
+} else if (userCommand === "spotify-this-song") {
+	spotifyThis();
+} else if (userCommand === "my-tweets") {
+	tweetThis();
+} else {
+	doWhat();
+}
+
+
+//tweetThis function
+
+function tweetThis(){
+	console.log("tweet this yo.");
+	var key = require ("./keys.js");
+
+	var consumerKey = key.twitterKeys.consumer_key;
+	var consumerSecret = key.twitterKeys.consumer_secret;
+	var accessKey = key.twitterKeys.access_token_key;
+	var accessSecret = key.twitterKeys.access_token_secret;
+	
+	var Twitter = require('twitter');
+	var client = new Twitter({
+	  consumer_key: consumerKey,
+	  consumer_secret: consumerSecret,
+	  access_token_key: accessKey,
+	  access_token_secret: accessSecret
+	});
+
+
+	var params = {screen_name: 'MaggieStorino'};
+	client.get('statuses/user_timeline', params, function(error, tweets, response) {
+	  if (!error) {
+	    for (var i = 0; i <= 2; i++) {
+	    	var tweet = tweets[i].text;
+	    	console.log(tweet);
+	    }
+	  }
+	});
+
+
+
+
 };
 
-if (userCommand === "spotify-this-song") {
-	spotifyThis();
-};
+// doWhat function
+
+	function doWhat() {
+		
+
+		//store contents of random.txt inside variable data
+
+		fs.readFile ("random.txt", "utf8", function (error, data){
+			if (error) {
+			return console.log(err);
+			} else {
+				var output = data.split(",");
+				userValue = output[1];
+				spotifyThis();
+			} 
+		}) 
+
+	}
+
 
 //spotify function
 
@@ -31,15 +95,14 @@ function spotifyThis (){
 	
 
 	var spotify = require('spotify');
-	var song = process.argv[3];
 
-	spotify.search({ type: 'track', query: song}, function(err, data) {
+	spotify.search({ type: 'track', query: userValue}, function(err, data) {
 	    if ( err ) {
 	        console.log('Error occurred: ' + err);
 	        return;
 	    }
 
-	    // if (song = undefined) { song = "I saw the sign"};
+	    // if (userValue = undefined) { userValue = "I saw the sign"};
 	 	
 	 	var songInfo = data.tracks.items[0];
 
@@ -62,10 +125,10 @@ function spotifyThis (){
 
 function movieThis (){
 	//Grab Movie Name
-	movieName = process.argv[3];
+	// movieName = process.argv[3];
 
 	//Run Request to OMDB API
-	queryURL = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&r=json";
+	var queryURL = "http://www.omdbapi.com/?t=" + userValue + "&y=&plot=short&r=json";
 
 	//Debug against the actual URL
 	// console.log(queryURL);
